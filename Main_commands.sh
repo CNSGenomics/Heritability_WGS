@@ -7,33 +7,14 @@
 
 #### Variables
 ncpu=12 
-sample_list="./[..].txt" #List of samples with phenotypic information available
+sample_list="/data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/phenotypes/NTproBNP_14k.tsv" #List of samples with phenotypic information available
 
 ###### Create BED files and perform first filtering on SVM variants and other QC metrics
 
 
-
 for i in  {1..22} ; do
-    	bcftools view \
-    		-m2 -M2  \
-    		-Ou  \
-    		-i'FILTER="PASS"' \
-    		--threads "$ncpu" \
-    		-S "$sample_list" freeze.8.chr"$i".pass_and_fail.gtonly.minDP10.bcf |
-		bcftools  annotate \
-			--threads "$ncpu" \
-			-Ob \
-			-I +'%CHROM:%POS:%REF:%ALT' > freeze.8.66k.chr"$i".pass.bcf ; #Replace the "." snp ID by chr:pos:ref:alt
-		plink \
-			--bcf freeze.8.66k.chr"$i".pass.bcf \
-			--maf 0.0001 \
-			--allow-extra-chr \
-			--keep-allele-order \
-			--geno 0.05 \
-			--hwe 0.000001 \
-			--threads ${ncpu} \
-			--make-bed \
-			--out freeze.8.66k.chr"$i".0.0001 ;
+    	bcftools view -m2 -M2  -Ou  -i'FILTER="PASS"' --threads "$ncpu" -S "$sample_list" --force-samples /data/project/Arora_lab/akhil/TOPMED/COMPLETE/GENOTYPES/freeze.10a.chr"$i".pass_only.gtonly.minDP10.vcf.gz | bcftools  annotate --threads "$ncpu" -Ob -I +'%CHROM:%POS:%REF:%ALT' > /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf ;
+	plink --bcf /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf --maf 0.0001 --allow-extra-chr --keep-allele-order --geno 0.05 --hwe 0.000001 --threads ${ncpu} -make-bed --out freeze10.14k.chr"$i".0.0001 ;
 done
 
 
