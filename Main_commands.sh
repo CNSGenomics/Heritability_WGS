@@ -13,7 +13,8 @@ sample_list="/data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/phen
 
 
 for i in  {1..22} ; do
-    	bcftools view -m2 -M2  -Ou  -i'FILTER="PASS"' --threads "$ncpu" -S "$sample_list" --force-samples /data/project/Arora_lab/akhil/TOPMED/COMPLETE/GENOTYPES/freeze.10a.chr"$i".pass_only.gtonly.minDP10.vcf.gz | bcftools  annotate --threads "$ncpu" -Ob -I +'%CHROM:%POS:%REF:%ALT' > /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf ;
+    	bcftools view -m2 -M2  -Ou  -i'FILTER="PASS"' --threads "$ncpu" -S "$sample_list" --force-samples /data/project/Arora_lab/akhil/TOPMED/COMPLETE/GENOTYPES/freeze.10a.chr"$i".pass_only.gtonly.minDP10.vcf.gz | 
+	bcftools  annotate --threads "$ncpu" -Ob -I +'%CHROM:%POS:%REF:%ALT' > /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf ;
 	plink --bcf /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf --maf 0.0001 --allow-extra-chr --keep-allele-order --geno 0.05 --hwe 0.000001 --threads ${ncpu} -make-bed --out freeze10.14k.chr"$i".0.0001 ;
 done
 
