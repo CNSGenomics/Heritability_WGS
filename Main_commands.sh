@@ -9,14 +9,14 @@
 ncpu=12 
 sample_list="/data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/phenotypes/NTproBNP_14k.tsv" #List of samples with phenotypic information available
 
+
 ###### Create BED files and perform first filtering on SVM variants and other QC metrics
-
-
 for i in  {1..22} ; do
     	bcftools view -m2 -M2  -Ou  -i'FILTER="PASS"' --threads "$ncpu" -S "$sample_list" --force-samples /data/project/Arora_lab/akhil/TOPMED/COMPLETE/GENOTYPES/freeze.10a.chr"$i".pass_only.gtonly.minDP10.vcf.gz | 
 	bcftools  annotate --threads "$ncpu" -Ob -I +'%CHROM:%POS:%REF:%ALT' > /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf ;
 	plink --bcf /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf --maf 0.0001 --allow-extra-chr --keep-allele-order --geno 0.05 --hwe 0.000001 --threads ${ncpu} -make-bed --out freeze10.14k.chr"$i".0.0001 ;
 done
+
 
 ### Allele Frequency Calculations
 for i in {1..22}; do
@@ -24,15 +24,15 @@ plink2 --bfile freeze10.14k.chr${i}.0.0001 --freq --out freeze10.14k.chr${i}
 done
 
 
-### Subset Variants to 4 bins [0.05],[0.01,0.05),[0.001,0.01),[0.0001,0.001)
+### Subset Variants to 4 bins [0.05],[0.01,0.05),[0.001,0.01),[0.0001,0.001) 
 #module load R => R
 require(data.table)
 category1 = data.frame() ## [0.0001,0.001)
 category2 = data.frame() ## [0.001,0.01)
 category3 = data.frame() ## [0.01,0.05)
 category4 = data.frame() ## [0.05]
-for(i in 1:14) {
-	tmp = fread(paste0("freeze10.14k.chr",${i}+8,".afreq"))
+for(i in 1:22) {
+	tmp = fread(paste0("freeze10.14k.chr",i,".afreq"))
 	tmp = tmp[which(tmp$ALT_FREQS >= 0.0001),]
 	tmp1 = tmp[which(tmp$ALT_FREQS >= 0.0001 & tmp$ALT_FREQS < 0.001),]
 	category1 = rbind(category1,tmp1)
@@ -48,7 +48,33 @@ for(i in 1:14) {
 	
 	}
 
-save(category1,category2,category3,category4,file="allele_frequence_cutoff_4cat_09132022.rda")
+save(category1,category2,category3,category4,file="allele_frequence_cutoff_4cat_09142022.rda")
+write.table(category1,file="category1_0.0001_0.001.csv",row.names=F,col.names=T,sep="\t",dec=".",quote=F)
+write.table(category2,file="category2_0.001_0.01.csv",row.names=F,col.names=T,sep="\t",dec=".",quote=F)
+write.table(category3,file="category3_0.01_0.05.csv",row.names=F,col.names=T,sep="\t",dec=".",quote=F)
+write.table(category4,file="category4_0.05.csv",row.names=F,col.names=T,sep="\t",dec=".",quote=F)
+
+## Run in LINUX
+## Category 1 - [0.0001,0.001) 
+for i in  {1..22} ; do
+plink2 --bfile plink_format/freeze10.14k.chr${i}.0.0001 --extract subset_for_h2_calc/category1_0.0001_0.001/category1_0.0001_0.001.csv --make-bed --out subset_for_h2_calc/category1_0.0001_0.001/category1_chr${i}  
+done
+
+## Category 2 - [0.001,0.01)
+for i in  {1..22} ; do
+plink2 --bfile plink_format/freeze10.14k.chr${i}.0.0001 --extract subset_for_h2_calc/category2_0.001_0.01/category2_0.001_0.01.csv --make-bed --out subset_for_h2_calc/category2_0.001_0.01/category2_chr${i}  
+done
+
+## Category 3 - [0.01,0.05)
+for i in  {1..22} ; do
+plink2 --bfile plink_format/freeze10.14k.chr${i}.0.0001 --extract subset_for_h2_calc/category3_0.01_0.05/category3_0.01_0.05.csv --make-bed --out subset_for_h2_calc/category3_0.01_0.05/category3_chr${i}  
+done
+
+## Category 4 - [0.05]
+for i in  {1..22} ; do
+plink2 --bfile plink_format/freeze10.14k.chr${i}.0.0001 --extract subset_for_h2_calc/category4_0.05/category4_0.05.csv --make-bed --out subset_for_h2_calc/category4_0.05/category4_chr${i}  
+done
+
 
 
 ###### Merge BEDs ######
