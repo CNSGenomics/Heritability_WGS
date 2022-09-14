@@ -18,6 +18,38 @@ for i in  {1..22} ; do
 	plink --bcf /data/project/Arora_lab/akhil/TOPMED/BNP/NTproBNP/NTproBNP_14k/gwas/heritability/freeze10.14k.chr"$i".pass.bcf --maf 0.0001 --allow-extra-chr --keep-allele-order --geno 0.05 --hwe 0.000001 --threads ${ncpu} -make-bed --out freeze10.14k.chr"$i".0.0001 ;
 done
 
+### Allele Frequency Calculations
+for i in {1..22}; do
+plink2 --bfile freeze10.14k.chr${i}.0.0001 --freq --out freeze10.14k.chr${i}
+done
+
+
+### Subset Variants to 4 bins [0.05],[0.01,0.05),[0.001,0.01),[0.0001,0.001)
+#module load R => R
+require(data.table)
+category1 = data.frame() ## [0.0001,0.001)
+category2 = data.frame() ## [0.001,0.01)
+category3 = data.frame() ## [0.01,0.05)
+category4 = data.frame() ## [0.05]
+for(i in 1:14) {
+	tmp = fread(paste0("freeze10.14k.chr",${i}+8,".afreq"))
+	tmp = tmp[which(tmp$ALT_FREQS >= 0.0001),]
+	tmp1 = tmp[which(tmp$ALT_FREQS >= 0.0001 & tmp$ALT_FREQS < 0.001),]
+	category1 = rbind(category1,tmp1)
+
+	tmp1 = tmp[which(tmp$ALT_FREQS >= 0.001 & tmp$ALT_FREQS < 0.01),]
+	category2 = rbind(category2,tmp1)
+	
+	tmp1 = tmp[which(tmp$ALT_FREQS >= 0.01 & tmp$ALT_FREQS < 0.05),]
+	category3 = rbind(category3,tmp1)
+	
+	tmp1 = tmp[which(tmp$ALT_FREQS >= 0.05),]
+	category4 = rbind(category4,tmp1)
+	
+	}
+
+save(category1,category2,category3,category4,file="allele_frequence_cutoff_4cat_09132022.rda")
+
 
 ###### Merge BEDs ######
 #${list_beds} contains the list of the autosomes (excepted chr 1) for merging
